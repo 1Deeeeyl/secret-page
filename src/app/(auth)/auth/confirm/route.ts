@@ -16,22 +16,19 @@ export async function GET(request: NextRequest) {
     })
     
     if (!error && data.user) {
-      // After verification, create profile entry
       const { error: profileError } = await supabase
         .from('profiles')
         .insert([
           {
             id: data.user.id,
-            username: data.user.user_metadata?.username || '',
+            username: data.user.user_metadata?.username,
           }
         ]);
       
-      // Redirect to private page whether profile creation succeeded or not
-      // (We can handle profile issues later)
       return Response.redirect(new URL('/private', request.url))
     }
   }
 
-  // redirect the user to an error page with some instructions
+  
   return Response.redirect(new URL('/error', request.url))
 }
