@@ -16,16 +16,21 @@ const LogInPage = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
+    setError(null);
+  
     try {
-      const { data,error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-
-      if (error) throw new Error(error.message);
-
+  
+      if (error) {
+        throw new Error(error.message);
+      }
+  
+      // Only redirect if login was successful
       router.push('/private');
+      
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -62,7 +67,7 @@ const LogInPage = () => {
         <button type="submit" disabled={loading}>
           {loading ? 'Logging in...' : 'Login'}
         </button>
-        <Link href="/signup">Dashboard</Link>
+        <Link href="/signup">Sign Up</Link>
       </form>
 
       {error && <div>{error}</div>}

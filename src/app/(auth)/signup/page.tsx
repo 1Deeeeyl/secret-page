@@ -17,61 +17,53 @@ const SignUpPage = () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-
+  
     try {
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: 'http://localhost:3000/verify-email',
-        },
-      });
-
-      if (signUpError) {
-        setError(signUpError.message);
-        setLoading(false);
-        return;
-      }
-
-      const user = data.user;
-      if (!user) {
-        setError('Sign up failed.');
-        setLoading(false);
-        return;
-      }
-
-      await supabase.auth.signInWithPassword({ email, password });
-
-
-      const { error: profileError } = await supabase.from('profiles').insert([
-        {
-          id: user.id,
-          username,
-        },
-      ]);
-
+      // First check if username is already taken
       const { data: existingUsers, error: usernameError } = await supabase
         .from('profiles')
-        .select('*')
+        .select('username')
         .eq('username', username);
-
+  
       if (usernameError) {
         setError('Something went wrong while checking the username.');
         setLoading(false);
         return;
       }
-
+  
       if (existingUsers && existingUsers.length > 0) {
         setError('Username is already taken.');
         setLoading(false);
         return;
       }
-
-      if (profileError) {
-        setError(profileError.message);
-      } else {
-        router.push('/verify-email?from=signup');
+  
+      // Then proceed with signup
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: 'http://localhost:3000/auth/confirm?next=/private',
+          data: {
+            username: username, // Store username in user metadata
+          }
+        },
+      });
+  
+      if (signUpError) {
+        setError(signUpError.message);
+        setLoading(false);
+        return;
       }
+  
+      if (!data.user) {
+        setError('Sign up failed.');
+        setLoading(false);
+        return;
+      }
+  
+      // User created successfully, redirect to verify email page
+      router.push('/verify-email?from=signup');
+      
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -117,7 +109,7 @@ const SignUpPage = () => {
           />
         </div>
         <button type="submit" disabled={loading}>
-          {loading ? 'Logging in...' : 'Login'}
+          {loading ? 'Signing Up...' : 'Sign Up'}
         </button>
       </form>
 
