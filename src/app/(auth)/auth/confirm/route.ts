@@ -20,12 +20,12 @@ export async function GET(request: NextRequest) {
         .from('profiles')
         .insert([
           {
-            id: data.user.id,
+            profile_id: data.user.id,
             username: data.user.user_metadata?.username,
           }
         ]);
       
-      return Response.redirect(new URL('/private', request.url))
+      return Response.redirect(new URL('/', request.url))
     }
   }
 
