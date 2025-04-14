@@ -38,6 +38,20 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Define auth routes that logged-in users shouldn't access
+  const authRoutes = ['/signup', '/verify-email', '/auth'];
+  const isAuthRoute = authRoutes.some(route => 
+    request.nextUrl.pathname.startsWith(route)
+  );
+
+  // Redirect authenticated users away from auth routes
+  if (user && isAuthRoute) {
+    // user is logged in but trying to access auth routes, redirect to dashboard
+    const url = request.nextUrl.clone();
+    url.pathname = '/'; // or any other authenticated landing page
+    return NextResponse.redirect(url);
+  }
+
   // Only protect specific routes, not the home route
   if (
     !user &&
