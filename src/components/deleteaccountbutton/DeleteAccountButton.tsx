@@ -4,11 +4,11 @@ import { User } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 
-interface HomePageProps {
+interface ProfileProps {
     user: User;
   }
 
-function DeleteAccountButton({ user }: HomePageProps) {
+function DeleteAccountButton({ user }: ProfileProps) {
     const supabase = createClient();
     const [loading, setLoading] = useState(true);
 

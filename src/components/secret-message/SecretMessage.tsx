@@ -2,7 +2,7 @@
 function SecretMessage() {
   return (
     <div>
-      Hello, I'm a secret message. 😁
+      Hello, I'm a static secret message.😁
     </div>
   )
 }

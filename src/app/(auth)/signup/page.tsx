@@ -7,6 +7,7 @@ import { createClient } from '@/utils/supabase/client';
 const SignUpPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [retypePassword, setRetypePassword] = useState('');
   const [username, setUsername] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -33,6 +34,12 @@ const SignUpPage = () => {
   
       if (existingUsers && existingUsers.length > 0) {
         setError('Username is already taken.');
+        setLoading(false);
+        return;
+      }
+
+      if (password !== retypePassword) {
+        setError('Password is not a match');
         setLoading(false);
         return;
       }
@@ -94,6 +101,17 @@ const SignUpPage = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
+            required
+          />
+        </div>
+        <div>
+          <input
+            className="border-2"
+            type="password"
+            name="retype password"
+            value={retypePassword}
+            onChange={(e) => setRetypePassword(e.target.value)}
+            placeholder="Retype Password"
             required
           />
         </div>

@@ -1,0 +1,200 @@
+'use client';
+import { User } from '@supabase/supabase-js';
+import { useEffect, useState } from 'react';
+import { createClient } from '@/utils/supabase/client';
+import Modal from '../modal/Modal';
+
+interface ProfileProps {
+  user: User;
+}
+
+function ChangeMessage({ user }: ProfileProps) {
+  const supabase = createClient();
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [secretMessage, setSecretMessage] = useState<string>('');
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [hasExistingMessage, setHasExistingMessage] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchMessage = async () => {
+      try {
+        const { data: message, error } = await supabase
+          .from('secret_messages')
+          .select('message')
+          .eq('profile_id', user.id)
+          .maybeSingle();
+
+        if (message) {
+          setSecretMessage(message.message || '');
+          setHasExistingMessage(true);
+        } else {
+          setSecretMessage('');
+          setHasExistingMessage(false);
+        }
+
+        if (error) {
+          console.error('Error fetching message:', error);
+        }
+      } catch (err) {
+        console.error('Error loading message:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMessage();
+
+    // Realtime subscription
+    const channel = supabase
+      .channel('realtime-secret-message')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'secret_messages',
+          filter: `profile_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('Realtime payload:', payload);
+          if (
+            payload.eventType === 'INSERT' ||
+            payload.eventType === 'UPDATE'
+          ) {
+            const newMessage = payload.new?.message ?? '';
+            setSecretMessage(newMessage);
+            setHasExistingMessage(true);
+          }
+        }
+      )
+      .subscribe();
+
+    // Cleanup on unmount
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user.id, supabase]);
+
+  const submitData = async () => {
+    if (!secretMessage.trim()) {
+      setError('Message cannot be empty');
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+    setSuccess(false);
+
+    try {
+      let result;
+
+      if (hasExistingMessage) {
+        // Update existing message - profile_id is the primary key
+        console.log('Updating message for profile:', user.id);
+        result = await supabase
+          .from('secret_messages')
+          .update({
+            message: secretMessage,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('profile_id', user.id);
+      } else {
+        // Insert new message with profile_id as the primary key
+        console.log('Inserting new message for profile:', user.id);
+        result = await supabase.from('secret_messages').insert({
+          profile_id: user.id,
+          message: secretMessage,
+          updated_at: new Date().toISOString(),
+        });
+      }
+
+      if (result.error) {
+        console.error('Operation error:', result.error);
+        throw result.error;
+      }
+
+      console.log('Operation successful:', result);
+      setHasExistingMessage(true);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err: any) {
+      console.error('Error submitting message:', err);
+      setError(err.message || 'Failed to save message');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="px-4 py-2 rounded bg-green-500 text-white w-fit">
+        Loading...
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="px-4 py-2 rounded bg-green-500 text-white w-fit"
+        // disabled
+      >
+        Edit Message
+      </button>
+      <Modal open={open} onClose={() => setOpen(false)}>
+        <div className="flex flex-col">
+          <label htmlFor="secret-message" className="mb-1 font-medium">
+            Your Secret Message
+          </label>
+          <textarea
+            id="secret-message"
+            value={secretMessage}
+            onChange={(e) => {
+              setSecretMessage(e.target.value);
+              e.currentTarget.style.height = 'auto';
+              e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault(); // Prevent newline
+                submitData(); // Call your submit function
+              }
+            }}
+            rows={1}
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none overflow-hidden transition-all mb-5"
+            placeholder="Enter your secret message here"
+          />
+        </div>
+
+        <button
+          className={`px-4 py-2 rounded ${
+            submitting
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-green-500 hover:bg-green-600 text-white'
+          }`}
+          onClick={submitData}
+          disabled={submitting}
+        >
+          {submitting ? 'Saving...' : 'Save Message'}
+        </button>
+        <div className="mt-5">
+          {error && (
+            <div className="bg-red-100 text-red-700 p-2 rounded">{error}</div>
+          )}
+
+          {success && (
+            <div className="bg-green-100 text-green-700 p-2 rounded">
+              Message saved successfully!
+            </div>
+          )}
+        </div>
+      </Modal>
+    </>
+  );
+}
+
+export default ChangeMessage;
