@@ -5,6 +5,7 @@ import SecretMessage from '@/components/secret-message/SecretMessage';
 import UserSecretMessage from '@/components/UserSecretMessage/UserSecretMessage';
 import ChangeMessage from '@/components/changeMessage/ChangeMessage';
 import UserList from '@/components/userList/UserList';
+import FriendRequestList from '@/components/friendRequestList/FriendRequestList';
 
 export default async function SecretPage3() {
   const supabase = await createClient();
@@ -26,6 +27,7 @@ export default async function SecretPage3() {
       <UserSecretMessage user={user}/>
       <ChangeMessage user={user}/>
       <UserList user={user}/>
+      <FriendRequestList user={user}/>
     </div>
   )
 }
