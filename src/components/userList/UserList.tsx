@@ -288,7 +288,7 @@ function UserList({ user }: HomePageProps) {
   };
 
   return (
-    <div className='w-full p-6 bg-white'>
+    <div className='bg-white rounded-lg p-5'>
       <h2 className="font-bold text-xl mb-[25px]">User List</h2>
       {loading ? (
         <p className='text-gray-500'>Loading user list...</p>

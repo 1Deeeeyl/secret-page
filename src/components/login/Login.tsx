@@ -16,21 +16,20 @@ const LogInPage = () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-  
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-  
+
       if (error) {
         throw new Error(error.message);
       }
-      
+
       // On successful login, just reload the page once
       // This will cause the server component to re-render with the new auth state
       window.location.href = '/';
-      
     } catch (err: any) {
       setError(err.message);
       setLoading(false);
@@ -42,10 +41,9 @@ const LogInPage = () => {
       <h1 className="text-2xl font-semibold mb-6">Login</h1>
       <form onSubmit={handleLogin}>
         <div className="mb-4">
-          <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
           <input
             id="email"
-            className="w-full p-2 border rounded focus:ring focus:ring-blue-200 focus:outline-none"
+            className="w-full p-2 border rounded focus:outline-blue-500"
             type="email"
             name="email"
             value={email}
@@ -55,10 +53,9 @@ const LogInPage = () => {
           />
         </div>
         <div className="mb-6">
-          <label htmlFor="password" className="block text-sm font-medium mb-1">Password</label>
           <input
             id="password"
-            className="w-full p-2 border rounded focus:ring focus:ring-blue-200 focus:outline-none"
+            className="w-full p-2 border rounded focus:outline-blue-500"
             type="password"
             name="password"
             value={password}
@@ -68,8 +65,8 @@ const LogInPage = () => {
           />
         </div>
         <div className="flex justify-between items-center">
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             disabled={loading}
             className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded focus:outline-none focus:ring focus:ring-blue-200"
           >
@@ -82,9 +79,7 @@ const LogInPage = () => {
       </form>
 
       {error && (
-        <div className="mt-4 p-3 bg-red-50 text-red-700 rounded">
-          {error}
-        </div>
+        <div className="mt-4 p-3 bg-red-50 text-red-700 rounded">{error}</div>
       )}
     </div>
   );

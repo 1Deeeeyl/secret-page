@@ -165,7 +165,7 @@ function FriendRequestList({ user }: HomePageProps) {
 
 
   return (
-  <div className="bg-white shadow rounded-lg p-4">
+  <div className="bg-white rounded-lg p-5">
     <h3 className="font-bold text-xl mb-4">Friend Requests</h3>
 
     {loading ? (
