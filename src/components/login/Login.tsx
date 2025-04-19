@@ -39,7 +39,7 @@ const LogInPage = () => {
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded shadow">
       <h1 className="text-2xl font-semibold mb-6">Login</h1>
-      <form onSubmit={handleLogin}>
+      <form onSubmit={handleLogin} className="">
         <div className="mb-4">
           <input
             id="email"
@@ -52,7 +52,7 @@ const LogInPage = () => {
             required
           />
         </div>
-        <div className="mb-6">
+        <div className="mb-1">
           <input
             id="password"
             className="w-full p-2 border rounded focus:outline-blue-500"
@@ -64,17 +64,25 @@ const LogInPage = () => {
             required
           />
         </div>
-        <div className="flex justify-between items-center">
+        <p className="text-right mb-6">
+          <Link href="/request-password" className="text-gray-500 hover:text-blue-500">
+            Forgot Password?
+          </Link>
+        </p>
+        <div className="flex justify-between items-center flex-col gap-5 text-center">
           <button
             type="submit"
             disabled={loading}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded focus:outline-none focus:ring focus:ring-blue-200"
+            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded w-full"
           >
             {loading ? 'Logging in...' : 'Login'}
           </button>
-          <Link href="/signup" className="text-blue-500 hover:text-blue-700">
-            Create Account
-          </Link>
+          <p className="text-sm">
+            Don't have an account?&nbsp;
+            <Link href="/signup" className="text-blue-500 hover:text-blue-700">
+              Sign up here.
+            </Link>
+          </p>
         </div>
       </form>
 

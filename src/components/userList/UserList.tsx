@@ -47,22 +47,22 @@ function UserList({ user }: HomePageProps) {
         .or(
           `and(user_id.eq.${user.id},friend_id.eq.${profileId}),and(user_id.eq.${profileId},friend_id.eq.${user.id})`
         );
-  
+
       if (error) {
         console.error('Error checking friendship status:', error);
         return;
       }
-  
+
       // No relationship found
       if (!data || data.length === 0) {
         setFriendshipStatus('not_friends');
         return;
       }
-  
+
       // Find the most relevant status (accepted takes precedence)
-      if (data.some(friendship => friendship.status === 'accepted')) {
+      if (data.some((friendship) => friendship.status === 'accepted')) {
         setFriendshipStatus('accepted');
-      } else if (data.some(friendship => friendship.status === 'pending')) {
+      } else if (data.some((friendship) => friendship.status === 'pending')) {
         setFriendshipStatus('pending');
       } else {
         setFriendshipStatus('rejected');
@@ -79,9 +79,9 @@ function UserList({ user }: HomePageProps) {
 
   const revealSecretMessage = async () => {
     if (!selectedUser) return;
-  
+
     setMessageLoading(true);
-  
+
     try {
       // First check if users are friends
       const { data: friendship, error: friendshipError } = await supabase
@@ -90,12 +90,13 @@ function UserList({ user }: HomePageProps) {
         .or(
           `and(user_id.eq.${user.id},friend_id.eq.${selectedUser.profileId}),and(user_id.eq.${selectedUser.profileId},friend_id.eq.${user.id})`
         );
-  
+
       if (friendshipError) throw friendshipError;
-  
+
       // Check if any record has status 'accepted'
-      const areFriends = friendship && friendship.some(f => f.status === 'accepted');
-  
+      const areFriends =
+        friendship && friendship.some((f) => f.status === 'accepted');
+
       // Only fetch message if they're friends
       if (areFriends) {
         const { data, error } = await supabase
@@ -103,11 +104,11 @@ function UserList({ user }: HomePageProps) {
           .select('message')
           .eq('profile_id', selectedUser.profileId)
           .single();
-  
+
         if (error) {
           throw error;
         }
-  
+
         setSecretMessage(data ? data.message : 'User has no secret message.');
       } else {
         setSecretMessage(
@@ -124,36 +125,41 @@ function UserList({ user }: HomePageProps) {
 
   const sendFriendRequest = async () => {
     if (!selectedUser) return;
-    
+
     setRequestLoading(true);
-  
+
     try {
       // First, check for an existing record where current user is the sender
-      const { data: existingSentRequest, error: checkSentError } = await supabase
-        .from('friends')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('friend_id', selectedUser.profileId)
-        .single();
-      
+      const { data: existingSentRequest, error: checkSentError } =
+        await supabase
+          .from('friends')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('friend_id', selectedUser.profileId)
+          .single();
+
       if (checkSentError && checkSentError.code !== 'PGRST116') {
         console.error('Error checking sent friend request:', checkSentError);
         return;
       }
-      
+
       // Then, check for an existing record where current user is the recipient
-      const { data: existingReceivedRequest, error: checkReceivedError } = await supabase
-        .from('friends')
-        .select('*')
-        .eq('user_id', selectedUser.profileId)
-        .eq('friend_id', user.id)
-        .single();
-      
+      const { data: existingReceivedRequest, error: checkReceivedError } =
+        await supabase
+          .from('friends')
+          .select('*')
+          .eq('user_id', selectedUser.profileId)
+          .eq('friend_id', user.id)
+          .single();
+
       if (checkReceivedError && checkReceivedError.code !== 'PGRST116') {
-        console.error('Error checking received friend request:', checkReceivedError);
+        console.error(
+          'Error checking received friend request:',
+          checkReceivedError
+        );
         return;
       }
-      
+
       // Case 1: Current user already sent a request (update it if rejected)
       if (existingSentRequest) {
         if (existingSentRequest.status === 'rejected') {
@@ -161,7 +167,7 @@ function UserList({ user }: HomePageProps) {
             .from('friends')
             .update({ status: 'pending' })
             .eq('id', existingSentRequest.id);
-          
+
           if (updateError) {
             console.error('Error updating friend request:', updateError);
             return;
@@ -177,21 +183,19 @@ function UserList({ user }: HomePageProps) {
             .from('friends')
             .delete()
             .eq('id', existingReceivedRequest.id);
-          
+
           if (deleteError) {
             console.error('Error deleting old friend request:', deleteError);
             return;
           }
-          
+
           // Now insert a new record in the opposite direction
-          const { error: insertError } = await supabase
-            .from('friends')
-            .insert({
-              user_id: user.id,
-              friend_id: selectedUser.profileId,
-              status: 'pending'
-            });
-          
+          const { error: insertError } = await supabase.from('friends').insert({
+            user_id: user.id,
+            friend_id: selectedUser.profileId,
+            status: 'pending',
+          });
+
           if (insertError) {
             console.error('Error inserting new friend request:', insertError);
             return;
@@ -201,20 +205,18 @@ function UserList({ user }: HomePageProps) {
       }
       // Case 3: No existing relationship, create a new request
       else {
-        const { error: insertError } = await supabase
-          .from('friends')
-          .insert({
-            user_id: user.id,
-            friend_id: selectedUser.profileId,
-            status: 'pending'
-          });
-        
+        const { error: insertError } = await supabase.from('friends').insert({
+          user_id: user.id,
+          friend_id: selectedUser.profileId,
+          status: 'pending',
+        });
+
         if (insertError) {
           console.error('Error inserting friend request:', insertError);
           return;
         }
       }
-      
+
       setFriendshipStatus('pending');
     } catch (err) {
       console.error('Error sending friend request:', err);
@@ -248,7 +250,64 @@ function UserList({ user }: HomePageProps) {
     };
 
     fetchUsers();
-  }, []);
+
+    // Set up real-time subscription for the profiles table
+    const channel = supabase
+      .channel('profiles-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen for all events (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'profiles',
+        },
+        (payload) => {
+          console.log('Profile change received:', payload);
+
+          if (
+            payload.eventType === 'INSERT' &&
+            payload.new.profile_id !== user.id
+          ) {
+            // Add new user to the list
+            setUserList((prev) => ({
+              ...prev,
+              [payload.new.profile_id]: payload.new.username,
+            }));
+          }
+
+          if (
+            payload.eventType === 'UPDATE' &&
+            payload.new.profile_id !== user.id
+          ) {
+            // Update existing user in the list
+            setUserList((prev) => ({
+              ...prev,
+              [payload.new.profile_id]: payload.new.username,
+            }));
+          }
+
+          if (
+            payload.eventType === 'DELETE' &&
+            payload.old.profile_id !== user.id
+          ) {
+            // Remove user from the list
+            setUserList((prev) => {
+              const updated = { ...prev };
+              delete updated[payload.old.profile_id];
+              return updated;
+            });
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('Profile subscription status:', status);
+      });
+
+    // Cleanup function to remove the channel when component unmounts
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user.id]);
 
   // Render friendship status based UI
   const renderFriendshipUI = () => {
@@ -280,18 +339,16 @@ function UserList({ user }: HomePageProps) {
         );
       default:
         return (
-          <div className="mt-4 text-gray-500">
-            Checking friend status...
-          </div>
+          <div className="mt-4 text-gray-500">Checking friend status...</div>
         );
     }
   };
 
   return (
-    <div className='bg-white rounded-lg p-5'>
+    <div className="bg-white rounded-lg p-5">
       <h2 className="font-bold text-xl mb-[25px]">User List</h2>
       {loading ? (
-        <p className='text-gray-500'>Loading user list...</p>
+        <p className="text-gray-500">Loading user list...</p>
       ) : userList && Object.keys(userList).length > 0 ? (
         <ul className="list-none flex flex-col gap-2 max-w-full px-6">
           {Object.entries(userList).map(([profileId, username]) => (

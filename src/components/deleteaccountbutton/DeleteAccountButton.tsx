@@ -11,9 +11,8 @@ interface ProfileProps {
 
 function DeleteAccountButton({ user }: ProfileProps) {
   const supabase = createClient();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);  // Change to false
   const [open, setOpen] = useState(false);
-  const [confirmed, setConfirmed] = useState(false);
 
   const handleDeleteAccount = async () => {
     try {
@@ -53,6 +52,7 @@ function DeleteAccountButton({ user }: ProfileProps) {
       setLoading(false);
     }
   };
+
   return (
     <>
       <button
@@ -66,11 +66,12 @@ function DeleteAccountButton({ user }: ProfileProps) {
           <p>Are you sure you want to delete your account?</p>
           <button
             className={`bg-red-400 px-8 py-2 rounded text-white hover:bg-red-500 cursor-pointer ${
-              loading ? '' : 'bg-red-500'
+              loading ? 'opacity-75 cursor-wait' : ''
             }`}
             onClick={handleDeleteAccount}
+            disabled={loading}  // Also disable button when loading
           >
-            {loading ? 'Yes' : 'Deleting Account...'}
+            {loading ? 'Deleting Account...' : 'Yes'}
           </button>
         </div>
       </Modal>

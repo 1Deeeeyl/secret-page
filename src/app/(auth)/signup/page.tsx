@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
+
 
 const SignUpPage = () => {
   const [email, setEmail] = useState('');
@@ -127,7 +127,7 @@ const SignUpPage = () => {
         <button
           type="submit"
           disabled={loading}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded focus:outline-none focus:ring focus:ring-blue-200"
+          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded w-full"
         >
           {loading ? 'Signing Up...' : 'Sign Up'}
         </button>

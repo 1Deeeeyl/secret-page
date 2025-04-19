@@ -71,7 +71,7 @@ function UserSecretMessage({ user }: ProfileProps) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user.id, supabase]);
+  }, [user.id]);
 
   return (
     <div>
