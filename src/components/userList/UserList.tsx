@@ -104,11 +104,11 @@ function UserList({ user }: HomePageProps) {
           .eq('profile_id', selectedUser.profileId)
           .single();
   
-        if (error && error.code !== 'PGRST116') {
+        if (error) {
           throw error;
         }
   
-        setSecretMessage(data ? data.message : 'No secret message found');
+        setSecretMessage(data ? data.message : 'User has no secret message.');
       } else {
         setSecretMessage(
           '🔒 You must be friends with this user to see their secret message.'
@@ -288,18 +288,18 @@ function UserList({ user }: HomePageProps) {
   };
 
   return (
-    <div>
-      <h2 className="font-bold text-xl">User List</h2>
+    <div className='w-full p-6 bg-white'>
+      <h2 className="font-bold text-xl mb-[25px]">User List</h2>
       {loading ? (
-        <p>Loading...</p>
+        <p className='text-gray-500'>Loading user list...</p>
       ) : userList && Object.keys(userList).length > 0 ? (
-        <ul className="list-none flex flex-col gap-2 w-fit">
+        <ul className="list-none flex flex-col gap-2 max-w-full px-6">
           {Object.entries(userList).map(([profileId, username]) => (
             <li
-              className="bg-white shadow py-2 pl-5 pr-12 rounded-md flex flex-col"
+              className="border-b-1 py-2 px-10 flex flex-row justify-between border-zinc-300"
               key={profileId}
             >
-              <span className="font-semibold">{username}</span>
+              <h3 className="font-semibold">{username}</h3>
               <span
                 onClick={() => handleUserClick(profileId, username)}
                 className="font-light underline underline-offset-2 decoration-cyan-500 text-cyan-500 text-sm cursor-pointer"

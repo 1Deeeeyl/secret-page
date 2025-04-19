@@ -1,14 +1,14 @@
 // app/api/users/[userId]/route.ts
 import { createClient, protect } from '@/utils/supabase/server';
 import { NextResponse } from 'next/server';
+
 export async function DELETE(
   request: Request,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    // Verify the user is authenticated
     const user = await protect();
-    const userId = params.userId;
+    const { userId } = await params;
 
     // Security check: Only allow users to delete their own account
     if (user.id !== userId) {
@@ -17,20 +17,36 @@ export async function DELETE(
         { status: 403 }
       );
     }
+
     const supabase = await createClient();
-    // // 1. First delete user data from profiles table
+
+    // 1. First delete user data from profiles table
+    const { error: friendsDeleteError } = await supabase
+      .from('friends')
+      .delete()
+      .or(`user_id.eq.${userId},friend_id.eq.${userId}`);
+
+    const { error: secretMessagesDeleteError } = await supabase
+      .from('secret_messages')
+      .delete()
+      .eq('profile_id', userId);
+
     const { error: profileDeleteError } = await supabase
       .from('profiles')
       .delete()
       .eq('profile_id', userId);
 
-    if (profileDeleteError) {
-      console.error('Error deleting profile data:', profileDeleteError);
+    if (profileDeleteError || secretMessagesDeleteError || friendsDeleteError) {
+      console.error(
+        'Error deleting profile data:',
+        profileDeleteError || secretMessagesDeleteError || friendsDeleteError
+      );
       return NextResponse.json(
         { message: 'Failed to delete user profile data' },
         { status: 500 }
       );
     }
+
     // Create admin client with service role for all operations
     const supabaseAdmin = await createClient(true); // true = use service role
     // 2. Delete the user authentication data using admin API

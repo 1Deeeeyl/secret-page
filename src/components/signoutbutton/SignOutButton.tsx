@@ -18,7 +18,7 @@ function SignOutButton({ user }: ProfileProps) {
   };
 
   return (
-    <button onClick={handleLogout} className="bg-gray-200 px-3 py-1 rounded mr-2">Log Out</button>
+    <button onClick={handleLogout} className="bg-gray-200 px-3 py-1 rounded mr-2 cursor-pointe text-gray-900 hover:bg-gray-500 hover:text-gray-200">Log Out</button>
 );
 }
 

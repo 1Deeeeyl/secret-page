@@ -28,7 +28,8 @@ function ChangeMessage({ user }: ProfileProps) {
           .maybeSingle();
 
         if (message) {
-          setSecretMessage(message.message || '');
+          // Handle null message values
+          setSecretMessage(message.message ?? '');
           setHasExistingMessage(true);
         } else {
           setSecretMessage('');
@@ -59,7 +60,7 @@ function ChangeMessage({ user }: ProfileProps) {
           filter: `profile_id=eq.${user.id}`,
         },
         (payload) => {
-          console.log('Realtime payload:', payload);
+          console.log('Realtime payload in ChangeMessage:', payload);
           if (
             payload.eventType === 'INSERT' ||
             payload.eventType === 'UPDATE'
@@ -79,11 +80,9 @@ function ChangeMessage({ user }: ProfileProps) {
   }, [user.id, supabase]);
 
   const submitData = async () => {
-    if (!secretMessage.trim()) {
-      setError('Message cannot be empty');
-      return;
-    }
-
+    // Allow empty messages
+    // We're not validating against empty messages anymore
+    
     setSubmitting(true);
     setError(null);
     setSuccess(false);
@@ -93,7 +92,7 @@ function ChangeMessage({ user }: ProfileProps) {
 
       if (hasExistingMessage) {
         // Update existing message - profile_id is the primary key
-        console.log('Updating message for profile:', user.id);
+        console.log('Updating message for profile:', user.id, 'to:', secretMessage);
         result = await supabase
           .from('secret_messages')
           .update({
@@ -103,7 +102,7 @@ function ChangeMessage({ user }: ProfileProps) {
           .eq('profile_id', user.id);
       } else {
         // Insert new message with profile_id as the primary key
-        console.log('Inserting new message for profile:', user.id);
+        console.log('Inserting new message for profile:', user.id, 'with content:', secretMessage);
         result = await supabase.from('secret_messages').insert({
           profile_id: user.id,
           message: secretMessage,
@@ -119,7 +118,12 @@ function ChangeMessage({ user }: ProfileProps) {
       console.log('Operation successful:', result);
       setHasExistingMessage(true);
       setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
+      
+      // Close modal on success after a brief delay
+      setTimeout(() => {
+        setSuccess(false);
+        setOpen(false);
+      }, 1500);
     } catch (err: any) {
       console.error('Error submitting message:', err);
       setError(err.message || 'Failed to save message');
@@ -128,23 +132,20 @@ function ChangeMessage({ user }: ProfileProps) {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="px-4 py-2 rounded bg-green-500 text-white w-fit">
-        Loading...
-      </div>
-    );
-  }
-
   return (
     <>
       <button
+        className={`px-4 py-2 rounded w-fit disabled ${
+          loading
+            ? 'bg-gray-500 text-slate-100'
+            : 'bg-green-500 text-white hover:bg-green-600 cursor-pointer'
+        }`}
         onClick={() => setOpen(true)}
-        className="px-4 py-2 rounded bg-green-500 text-white w-fit"
-        // disabled
+        disabled={loading}
       >
-        Edit Message
+        {loading ? 'Loading...' : 'Edit Message'}
       </button>
+
       <Modal open={open} onClose={() => setOpen(false)}>
         <div className="flex flex-col">
           <label htmlFor="secret-message" className="mb-1 font-medium">
@@ -166,7 +167,7 @@ function ChangeMessage({ user }: ProfileProps) {
             }}
             rows={1}
             className="w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none overflow-hidden transition-all mb-5"
-            placeholder="Enter your secret message here"
+            placeholder="Enter your secret message here!"
           />
         </div>
 

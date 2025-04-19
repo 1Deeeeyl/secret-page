@@ -6,23 +6,32 @@ import { createClient } from '@/utils/supabase/client';
 interface ProfileProps {
   user: User;
 }
+
 function UserSecretMessage({ user }: ProfileProps) {
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
   const [secretMessage, setSecretMessage] = useState<string | null>(null);
+  const [hasMessage, setHasMessage] = useState(false);
 
   useEffect(() => {
     const fetchMessage = async () => {
       try {
-        const { data: message } = await supabase
+        const { data, error } = await supabase
           .from('secret_messages')
           .select('message')
           .eq('profile_id', user.id)
-          .single();
+          .maybeSingle();
 
-        setSecretMessage(message?.message || 'User has no secret message.');
+        if (data) {
+          setSecretMessage(data.message);
+          setHasMessage(true);
+        } else {
+          setSecretMessage('User has no secret message.');
+          setHasMessage(false);
+        }
       } catch (err) {
         console.error('Error loading profile:', err);
+        setSecretMessage('Error loading message.');
       } finally {
         setLoading(false);
       }
@@ -43,11 +52,16 @@ function UserSecretMessage({ user }: ProfileProps) {
         },
         (payload) => {
           console.log('Realtime update in UserSecretMessage:', payload);
+
           if (payload.eventType === 'DELETE') {
             setSecretMessage('User has no secret message.');
+            setHasMessage(false);
           } else {
             // For INSERT or UPDATE events
-            setSecretMessage(payload.new.message);
+            const newMessage = payload.new?.message ?? '';
+            setSecretMessage(newMessage);
+            setHasMessage(true);
+            console.log('Updated message to:', newMessage);
           }
         }
       )
@@ -59,24 +73,26 @@ function UserSecretMessage({ user }: ProfileProps) {
     };
   }, [user.id, supabase]);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
   return (
     <div>
       <p>
-        The secret message is:&nbsp;
-        <span
-          className={` font-extrabold ${
-            secretMessage === 'User has no secret message.'
-              ? 'text-red-500'
-              : 'text-green-500'
-          }`}
-        >
-          {secretMessage}
-        </span>
-      </p>
+  The secret message is:&nbsp;
+  {loading ? (
+    <span className="font-bold text-gray-500">Loading...</span>
+  ) : (
+    <span
+      className={`font-extrabold ${
+        secretMessage && secretMessage !== ''
+          ? 'text-green-500'
+          : 'text-red-500'
+      }`}
+    >
+      {(!hasMessage || secretMessage === '')
+        ? 'User has not set a secret message'
+        : secretMessage}
+    </span>
+  )}
+</p>
     </div>
   );
 }

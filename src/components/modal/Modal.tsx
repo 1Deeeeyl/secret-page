@@ -25,9 +25,22 @@ function Modal({ open, onClose, children }: ModalProps) {
       >
         <button
           onClick={onClose}
-          className="absolute top-3 right-5 font-extrabold text-xl text-gray-400 transition-all hover:text-gray-600"
+          className="absolute top-3 right-3 font-extrabold text-xl text-gray-400 transition-all hover:text-gray-600"
         >
-          X
+          <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
         </button>
         {children}
       </div>

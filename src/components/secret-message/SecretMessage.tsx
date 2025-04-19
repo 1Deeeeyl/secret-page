@@ -1,9 +1,9 @@
 
 function SecretMessage() {
   return (
-    <div>
+    <p className="mt-4">
       Hello, I'm a static secret message.😁
-    </div>
+    </p>
   )
 }
 

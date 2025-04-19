@@ -5,6 +5,7 @@ import { User } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import NavBar from '../navbar/NavBar';
+import Container from '../container/Container';
 
 interface HomePageProps {
   user: User;
@@ -38,20 +39,21 @@ export default function HomePage({ user }: HomePageProps) {
   }, [user.id]);
 
 
-  
 
-  if (loading) return <p className="p-4">Loading profile...</p>;
 
   return (
-    <div className="p-4">
-      <header className="bg-gray-100 p-4 mb-4 rounded">
-        <NavBar user={user}/>
-      </header>
-      
-      <div className="bg-white p-6 rounded shadow">
-        <h1 className="text-2xl mb-4">Welcome, {username}!</h1>
-      </div>
+     <>
+      <header className="bg-white p-4 mb-[25px] rounded box-border">
+      <NavBar user={user}/>
+        </header>
+        
+        <Container>
+        <section className="bg-white p-5 rounded-md  mb-[25px]">
+          <h1 className="font-bold text-5xl">Home Page</h1>
+          <h1 className="mt-4">{loading ? "Loading profile...": (<span className='italic'>Hello, {username}!</span>)}</h1>
+        </section>
+      </Container>
+     </>
 
-    </div>
   );
 }
