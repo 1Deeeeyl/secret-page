@@ -24,8 +24,6 @@ function HomePage({ user }: HomePageProps) {
           .eq('profile_id', user.id)
           .single();
 
-        
-
         setUsername(profile?.username);
       } catch (err) {
         console.error('Error loading profile:', err);
@@ -35,26 +33,28 @@ function HomePage({ user }: HomePageProps) {
     };
 
     fetchProfile();
-  }, [user.id]);
-
-
-
+  }, [user.id, supabase]);
 
   return (
-     <>
+    <>
       <header className="bg-white p-4 mb-[25px] rounded box-border">
-      <NavBar user={user}/>
-        </header>
-        
-        <Container>
+        <NavBar user={user} />
+      </header>
+
+      <Container>
         <section className="bg-white p-5 rounded-md  mb-[25px]">
           <h1 className="font-bold text-5xl">Home Page</h1>
-          <h1 className="mt-4">{loading ? "Loading profile...": (<span className='italic'>Hello, {username}!</span>)}</h1>
+          <h1 className="mt-4">
+            {loading ? (
+              'Loading profile...'
+            ) : (
+              <span className="italic">Hello, {username}!</span>
+            )}
+          </h1>
         </section>
       </Container>
-     </>
-
+    </>
   );
 }
 
-export default HomePage
+export default HomePage;

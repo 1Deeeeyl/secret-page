@@ -165,7 +165,7 @@ function FriendRequestList({ user }: HomePageProps) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user.id,supabase]);
+  }, [user.id,supabase,fetchFriendRequests]);
 
   return (
     <div className="bg-white rounded-lg p-5">
