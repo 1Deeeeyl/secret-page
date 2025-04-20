@@ -29,7 +29,7 @@ function UserList({ user }: HomePageProps) {
 
   const handleUserClick = (profileId: string, username: string) => {
     setSelectedUser({ profileId, username });
-    setSecretMessage(null); 
+    setSecretMessage(null);
     setFriendshipStatus(null);
     setOpen(true);
 
@@ -69,14 +69,14 @@ function UserList({ user }: HomePageProps) {
 
   const handleCloseModal = () => {
     setOpen(false);
-    setSecretMessage(null); 
+    setSecretMessage(null);
   };
 
   const revealSecretMessage = async () => {
     if (!selectedUser) return;
-  
+
     setMessageLoading(true);
-  
+
     try {
       const { data: friendship, error: friendshipError } = await supabase
         .from('friends')
@@ -85,20 +85,24 @@ function UserList({ user }: HomePageProps) {
           `and(user_id.eq.${user.id},friend_id.eq.${selectedUser.profileId},status.eq.accepted),and(friend_id.eq.${user.id},user_id.eq.${selectedUser.profileId},status.eq.accepted)`
         )
         .single();
-  
+      if (friendshipError) {
+        throw friendshipError;
+      }
       const areFriends = !!friendship && friendship.status === 'accepted';
-  
+
       if (!areFriends) {
-        setSecretMessage('🔒 You must be friends with this user to see their secret message.');
+        setSecretMessage(
+          '🔒 You must be friends with this user to see their secret message.'
+        );
         return;
       }
-  
+
       const { data, error } = await supabase
         .from('secret_messages')
         .select('message')
         .eq('profile_id', selectedUser.profileId)
         .single();
-  
+
       if (error) {
         if (error.code === 'PGRST116') {
           setSecretMessage('User has no secret message.');
@@ -106,7 +110,6 @@ function UserList({ user }: HomePageProps) {
         }
         throw error;
       }
-  
 
       if (!data?.message || data.message.trim() === '') {
         setSecretMessage('User has no secret message.');
@@ -168,8 +171,7 @@ function UserList({ user }: HomePageProps) {
             return;
           }
         }
-      }
-      else if (existingReceivedRequest) {
+      } else if (existingReceivedRequest) {
         if (existingReceivedRequest.status === 'rejected') {
           const { error: deleteError } = await supabase
             .from('friends')
@@ -192,8 +194,7 @@ function UserList({ user }: HomePageProps) {
             return;
           }
         }
-      }
-      else {
+      } else {
         const { error: insertError } = await supabase.from('friends').insert({
           user_id: user.id,
           friend_id: selectedUser.profileId,
@@ -245,7 +246,7 @@ function UserList({ user }: HomePageProps) {
       .on(
         'postgres_changes',
         {
-          event: '*', 
+          event: '*',
           schema: 'public',
           table: 'profiles',
         },
@@ -383,5 +384,3 @@ function UserList({ user }: HomePageProps) {
 }
 
 export default UserList;
-
-

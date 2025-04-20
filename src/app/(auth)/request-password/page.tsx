@@ -38,7 +38,7 @@ const Page = () => {
     <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded shadow">
       <h1 className="text-2xl font-semibold mb-3">Password Recovery</h1>
       <p className="mb-6 text-gray-500">
-        Type your email and we'll send you a link to update your password!
+        Type your email and we&apos;ll send you a link to update your password!
       </p>
       <form onSubmit={handleSignUp}>
         <div className="mb-4">
@@ -69,7 +69,7 @@ const Page = () => {
 
         {success && (
           <div className="bg-green-100 text-green-700 p-2 rounded">
-            We've sent you an email, please check your inbox.
+            We&apos;ve sent you an email, please check your inbox.
           </div>
         )}
       </div>

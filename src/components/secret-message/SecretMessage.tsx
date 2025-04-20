@@ -2,7 +2,7 @@
 function SecretMessage() {
   return (
     <p className="mt-4">
-      Hello, I'm a static secret message.😁
+      Hello&comma; I&apos;m a static secret message.😁
     </p>
   )
 }

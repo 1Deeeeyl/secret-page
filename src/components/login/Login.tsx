@@ -76,7 +76,7 @@ const LogInPage = () => {
             {loading ? 'Logging in...' : 'Login'}
           </button>
           <p className="text-sm">
-            Don't have an account?&nbsp;
+            Don&apos;t have an account?&nbsp;
             <Link href="/signup" className="text-blue-500 hover:text-blue-700">
               Sign up here.
             </Link>
