@@ -1,7 +1,7 @@
 'use client';
 
 import { User } from '@supabase/supabase-js';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/utils/supabase/client';
 
 interface HomePageProps {
@@ -24,7 +24,8 @@ function FriendRequestList({ user }: HomePageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchFriendRequests = async () => {
+  // Use useCallback to memoize the function
+  const fetchFriendRequests = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -68,7 +69,7 @@ function FriendRequestList({ user }: HomePageProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase, user.id]); // Only depend on supabase and user.id
 
   // accept button
   const handleAccept = async (requestId: string) => {
@@ -165,7 +166,7 @@ function FriendRequestList({ user }: HomePageProps) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user.id,supabase,fetchFriendRequests]);
+  }, [fetchFriendRequests]); // Now this is safe because fetchFriendRequests is memoized
 
   return (
     <div className="bg-white rounded-lg p-5">
