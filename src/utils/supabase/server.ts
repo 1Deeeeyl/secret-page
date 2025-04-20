@@ -28,3 +28,13 @@ export async function createClient(useServiceRole = false) {
   )
 }
 
+export async function getUser() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
+}
+export async function protect() {
+  const user = await getUser();
+  if (!user) throw new Error("Not authorized");
+  return user;
+}

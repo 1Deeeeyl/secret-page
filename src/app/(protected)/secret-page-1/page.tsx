@@ -1,5 +1,4 @@
 import { redirect } from 'next/navigation';
-import NavBar from '@/components/navbar/NavBar';
 import { createClient } from '@/utils/supabase/server';
 import SecretMessage from '@/components/secret-message/SecretMessage';
 import type { Metadata } from 'next';
@@ -10,7 +9,7 @@ export const metadata: Metadata = {
   description: 'Page 1 of the secret website',
 };
 
-async function page() {
+async function Page() {
   const supabase = await createClient();
 
   const { data } = await supabase.auth.getUser();
@@ -30,4 +29,4 @@ async function page() {
   );
 }
 
-export default page
+export default Page
