@@ -1,16 +1,20 @@
 import { createClient, protect } from '@/utils/supabase/server';
-// import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-async function handleDelete(
+// Use DELETE as the export name (all caps to match HTTP method)
+export async function DELETE(
   request: Request,
-  { params }: { params: Promise<{ userId: string }> }
+  { params }: { params: { userId: string } }
 ) {
   try {
     const user = await protect();
-    const { userId } = await params;
+    const { userId } = params;
 
     if (user.id !== userId) {
-      throw 'You can only delete your own account';
+      return NextResponse.json(
+        { error: 'You can only delete your own account' },
+        { status: 403 }
+      );
     }
 
     const supabase = await createClient(); //No argument uses anon key
@@ -27,7 +31,7 @@ async function handleDelete(
       .delete()
       .eq('profile_id', userId);
 
-      // Delete in profiles table
+    // Delete in profiles table
     const { error: profileDeleteError } = await supabase
       .from('profiles')
       .delete()
@@ -38,7 +42,10 @@ async function handleDelete(
         'Error deleting profile data:',
         profileDeleteError || secretMessagesDeleteError || friendsDeleteError
       );
-      throw 'You can only delete your own account';
+      return NextResponse.json(
+        { error: 'Error deleting profile data' },
+        { status: 500 }
+      );
     }
 
     // Service role key for admin level data manipulation
@@ -50,15 +57,21 @@ async function handleDelete(
 
     if (authDeleteError) {
       console.error('Error deleting user:', authDeleteError);
-      return 
+      return NextResponse.json(
+        { error: 'Error deleting user authentication data' },
+        { status: 500 }
+      );
     }
 
-    return 
+    return NextResponse.json(
+      { message: 'Account successfully deleted' },
+      { status: 200 }
+    );
   } catch (error) {
     console.error('Error during account deletion:', error);
-    return 
+    return NextResponse.json(
+      { error: 'Internal server error during account deletion' },
+      { status: 500 }
+    );
   }
-  
 }
-
-export {handleDelete}
