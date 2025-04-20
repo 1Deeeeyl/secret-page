@@ -35,7 +35,7 @@ function NavBar({ user }: ProfileProps) {
             ))}
       </div>
       <div className="hidden md:flex">
-        <SignOutButton user={user} />
+        <SignOutButton />
         <DeleteAccountButton user={user} />
       </div>
 
@@ -103,7 +103,7 @@ function NavBar({ user }: ProfileProps) {
               </Link>
             ))}
             <div className="pt-4 space-y-2">
-              <SignOutButton user={user} />
+              <SignOutButton />
               <DeleteAccountButton user={user} />
             </div>
           </div>
