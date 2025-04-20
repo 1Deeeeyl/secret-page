@@ -27,10 +27,9 @@ function UserSecretMessage({ user }: ProfileProps) {
           setSecretMessage('Error loading message.');
           setHasData(false);
         } else if (data) {
-          setSecretMessage(data.message || ''); 
+          setSecretMessage(data.message || '');
           setHasData(true);
         } else {
-          
           setSecretMessage('User has not set a secret message.');
           setHasData(false);
         }
@@ -71,7 +70,7 @@ function UserSecretMessage({ user }: ProfileProps) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user.id]);
+  }, [user.id, supabase]);
 
   return (
     <div>
@@ -85,9 +84,7 @@ function UserSecretMessage({ user }: ProfileProps) {
               hasData ? 'text-green-500' : 'text-red-500'
             }`}
           >
-            {secretMessage === ''
-              ? 'None'
-              : secretMessage}{' '}
+            {secretMessage === '' ? 'None' : secretMessage}{' '}
           </span>
         )}
       </p>

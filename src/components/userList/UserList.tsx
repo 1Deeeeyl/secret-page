@@ -291,7 +291,7 @@ function UserList({ user }: HomePageProps) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user.id]);
+  }, [user.id, supabase]);
 
   const renderFriendUi = () => {
     if (!selectedUser) return null;
