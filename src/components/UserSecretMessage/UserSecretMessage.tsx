@@ -39,25 +39,22 @@ function UserSecretMessage({ user }: ProfileProps) {
 
     fetchMessage();
 
-    // Set up realtime subscription
     const channel = supabase
       .channel('user-secret-message')
       .on(
         'postgres_changes',
         {
-          event: '*', // Listen for all events (INSERT, UPDATE, DELETE)
+          event: '*', 
           schema: 'public',
           table: 'secret_messages',
           filter: `profile_id=eq.${user.id}`,
         },
         (payload) => {
-          console.log('Realtime update in UserSecretMessage:', payload);
 
           if (payload.eventType === 'DELETE') {
             setSecretMessage('User has no secret message.');
             setHasMessage(false);
           } else {
-            // For INSERT or UPDATE events
             const newMessage = payload.new?.message ?? '';
             setSecretMessage(newMessage);
             setHasMessage(true);
@@ -67,7 +64,6 @@ function UserSecretMessage({ user }: ProfileProps) {
       )
       .subscribe();
 
-    // Clean up subscription when component unmounts
     return () => {
       supabase.removeChannel(channel);
     };

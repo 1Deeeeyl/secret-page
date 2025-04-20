@@ -27,7 +27,6 @@ function FriendRequestList({ user }: HomePageProps) {
   const fetchFriendRequests = async () => {
     try {
       setLoading(true);
-      console.log('Fetching friend requests for user:', user.id);
 
       const { data: friendshipData, error: friendshipError } = await supabase
         .from('friends')
@@ -71,6 +70,7 @@ function FriendRequestList({ user }: HomePageProps) {
     }
   };
 
+  // accept button
   const handleAccept = async (requestId: string) => {
     try {
       const { error } = await supabase
@@ -83,13 +83,14 @@ function FriendRequestList({ user }: HomePageProps) {
 
       if (error) throw error;
 
-      setRequests(prev => prev.filter(req => req.id !== requestId));
+      setRequests((prev) => prev.filter((req) => req.id !== requestId));
     } catch (err: any) {
       console.error('Error accepting friend request:', err);
       setError(err.message || 'Failed to accept friend request');
     }
   };
 
+  // reject button
   const handleReject = async (requestId: string) => {
     try {
       const { error } = await supabase
@@ -102,7 +103,7 @@ function FriendRequestList({ user }: HomePageProps) {
 
       if (error) throw error;
 
-      setRequests(prev => prev.filter(req => req.id !== requestId));
+      setRequests((prev) => prev.filter((req) => req.id !== requestId));
     } catch (err: any) {
       console.error('Error rejecting friend request:', err);
       setError(err.message || 'Failed to reject friend request');
@@ -112,7 +113,7 @@ function FriendRequestList({ user }: HomePageProps) {
   useEffect(() => {
     fetchFriendRequests();
 
-
+    // supabase realtime data fetching (supabase docs)
     const channel = supabase
       .channel('friend-requests')
       .on(
@@ -124,8 +125,10 @@ function FriendRequestList({ user }: HomePageProps) {
           filter: `friend_id=eq.${user.id}`,
         },
         async (payload) => {
-
-          if (payload.eventType === 'INSERT' && payload.new.status === 'pending') {
+          if (
+            payload.eventType === 'INSERT' &&
+            payload.new.status === 'pending'
+          ) {
             const { data: profileData } = await supabase
               .from('profiles')
               .select('username')
@@ -137,70 +140,71 @@ function FriendRequestList({ user }: HomePageProps) {
               sender_username: profileData?.username || 'Unknown User',
             } as FriendRequest;
 
-            setRequests(prev => [...prev, newRequest]);
+            setRequests((prev) => [...prev, newRequest]);
           }
 
+          // if row is either rejected or accepted
           if (payload.eventType === 'UPDATE') {
             if (payload.new.status !== 'pending') {
-              setRequests(prev => prev.filter(req => req.id !== payload.new.id));
+              setRequests((prev) =>
+                prev.filter((req) => req.id !== payload.new.id)
+              );
             }
           }
-
+          
+          // if row is deleted
           if (payload.eventType === 'DELETE') {
-            setRequests(prev => prev.filter(req => req.id !== payload.old.id));
+            setRequests((prev) =>
+              prev.filter((req) => req.id !== payload.old.id)
+            );
           }
         }
       )
-      .subscribe((status) => {
-        console.log('Realtime subscription status:', status); 
-      });
+      .subscribe();
 
     return () => {
-      console.log('Cleaning up realtime subscription');
       supabase.removeChannel(channel);
     };
   }, [user.id]);
 
-
   return (
-  <div className="bg-white rounded-lg p-5">
-    <h3 className="font-bold text-xl mb-4">Friend Requests</h3>
+    <div className="bg-white rounded-lg p-5">
+      <h3 className="font-bold text-xl mb-4">Friend Requests</h3>
 
-    {loading ? (
-      <p className="text-gray-500">Loading friend requests...</p>
-    ) : error ? (
-      <p className="text-red-500">Error: {error}</p>
-    ) : requests.length === 0 ? (
-      <p className="text-gray-500">No pending friend requests</p>
-    ) : (
-      <ul className="list-none flex flex-col gap-3 max-w-full">
-        {requests.map((request) => (
-          <li
-            key={request.id}
-            className="flex justify-between items-center p-3 rounded-md flex-row gap-30"
-          >
-            <p className="font-medium">{request.sender_username}</p>
-            <span className="flex gap-2">
-              <button
-                onClick={() => handleAccept(request.id)}
-                className="bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600 transition"
-              >
-                Accept
-              </button>
-              <button
-                onClick={() => handleReject(request.id)}
-                className="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 transition"
-              >
-                Decline
-              </button>
-            </span>
-          </li>
-        ))}
-      </ul>
-    )}
-  </div>
-);
-
+      {loading ? (
+        <p className="text-gray-500">Loading friend requests...</p>
+      ) : error ? (
+        <p className="text-red-500">Error: {error}</p>
+      ) : requests.length === 0 ? (
+        <p className="text-gray-500">No pending friend requests</p>
+      ) : (
+        <ul className="list-none flex flex-col gap-3 max-w-full">
+          {requests.map((request) => (
+            <li
+              key={request.id}
+              className="flex justify-between items-center p-3 rounded-md flex-row gap-30"
+            >
+              <p className="font-medium">{request.sender_username}</p>
+              <span className="flex gap-2">
+                <button
+                  onClick={() => handleAccept(request.id)}
+                  className="bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600 transition"
+                >
+                  Accept
+                </button>
+                <button
+                  onClick={() => handleReject(request.id)}
+                  className="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 transition"
+                >
+                  Decline
+                </button>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 export default FriendRequestList;

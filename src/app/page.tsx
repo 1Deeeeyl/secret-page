@@ -1,9 +1,8 @@
-// app/page.tsx
 import { createClient } from '@/utils/supabase/server';
 import HomePage from '@/components/home/Home';
 import LogInPage from '@/components/login/Login';
 
-export default async function IndexPage() {
+async function page() {
   const supabase = await createClient();
   
   const { data } = await supabase.auth.getUser();
@@ -11,3 +10,5 @@ export default async function IndexPage() {
 
   return user ? <HomePage user={user} /> : <LogInPage />;
 }
+
+export default page

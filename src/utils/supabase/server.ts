@@ -20,9 +20,7 @@ export async function createClient(useServiceRole = false) {
               cookieStore.set(name, value, options)
             )
           } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
+            
           }
         },
       },
@@ -30,13 +28,3 @@ export async function createClient(useServiceRole = false) {
   )
 }
 
-export async function getUser() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  return user;
-}
-export async function protect() {
-  const user = await getUser();
-  if (!user) throw new Error("Not authorized");
-  return user;
-}

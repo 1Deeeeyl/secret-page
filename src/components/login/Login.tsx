@@ -1,4 +1,3 @@
-// components/login/Login.tsx
 'use client';
 
 import { useState } from 'react';
@@ -27,8 +26,7 @@ const LogInPage = () => {
         throw new Error(error.message);
       }
 
-      // On successful login, just reload the page once
-      // This will cause the server component to re-render with the new auth state
+      // login success, reload index page windw.location.href prevents infinite loop?
       window.location.href = '/';
     } catch (err: any) {
       setError(err.message);

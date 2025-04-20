@@ -2,13 +2,13 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function updateSession(request: NextRequest) {
-  // Skip middleware processing for the home route to avoid redirect loops
+  // recover password fix
   const hasSupabaseAuthParams =
     request.nextUrl.searchParams.has('access_token') ||
     request.nextUrl.searchParams.has('refresh_token') ||
     request.nextUrl.searchParams.has('type') ||
     request.nextUrl.searchParams.has('error') ||
-    request.nextUrl.searchParams.has('code'); // sometimes used in magic links
+    request.nextUrl.searchParams.has('code'); 
   if (request.nextUrl.pathname === '/' || hasSupabaseAuthParams) {
     return NextResponse.next();
   }
@@ -44,33 +44,31 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Define auth routes that logged-in users shouldn't access
-  const authRoutes = ['/signup', '/auth', '/request-password'];
-  const isAuthRoute = authRoutes.some((route) =>
+  const publicRoutes = ['/signup', '/auth', '/request-password'];
+  const isPublicRoute = publicRoutes.some((route) =>
     request.nextUrl.pathname.startsWith(route)
   );
 
-  // Redirect authenticated users away from auth routes
-  if (user && isAuthRoute) {
-    // user is logged in but trying to access auth routes, redirect to dashboard
+  // Redirect authenticated users away from public routes
+  if (user && isPublicRoute) {
     const url = request.nextUrl.clone();
-    url.pathname = '/'; // or any other authenticated landing page
+    url.pathname = '/'; // redirect to index route
     return NextResponse.redirect(url);
   }
 
-  // Only protect specific routes, not the home route
   if (
     !user &&
     !request.nextUrl.pathname.startsWith('/signup') &&
     !request.nextUrl.pathname.startsWith('/auth') &&
     !request.nextUrl.pathname.startsWith('/request-password') &&
-    request.nextUrl.pathname !== '/' // Don't redirect from the home page
+    request.nextUrl.pathname !== '/' 
   ) {
-    // no user, redirect to home page for non-public routes
     const url = request.nextUrl.clone();
-    url.pathname = '/';
+    url.pathname = '/';// redirect to index route
     return NextResponse.redirect(url);
   }
 
   return supabaseResponse;
 }
+
+// supabase docs

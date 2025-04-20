@@ -25,13 +25,14 @@ function ChangeMessage({ user }: ProfileProps) {
           .from('secret_messages')
           .select('message')
           .eq('profile_id', user.id)
-          .maybeSingle();
+          .single();
 
         if (message) {
-          // Handle null message values
+          // if message column is blank
           setSecretMessage(message.message ?? '');
           setHasExistingMessage(true);
         } else {
+          // if message column is null(no row found)
           setSecretMessage('');
           setHasExistingMessage(false);
         }
@@ -48,7 +49,7 @@ function ChangeMessage({ user }: ProfileProps) {
 
     fetchMessage();
 
-    // Realtime subscription
+    // realtime data fetching (supabase docs)
     const channel = supabase
       .channel('realtime-secret-message')
       .on(
@@ -73,26 +74,20 @@ function ChangeMessage({ user }: ProfileProps) {
       )
       .subscribe();
 
-    // Cleanup on unmount
     return () => {
       supabase.removeChannel(channel);
     };
   }, [user.id, supabase]);
 
   const submitData = async () => {
-    // Allow empty messages
-    // We're not validating against empty messages anymore
-    
     setSubmitting(true);
     setError(null);
     setSuccess(false);
 
     try {
       let result;
-
+      // User has existing data
       if (hasExistingMessage) {
-        // Update existing message - profile_id is the primary key
-        console.log('Updating message for profile:', user.id, 'to:', secretMessage);
         result = await supabase
           .from('secret_messages')
           .update({
@@ -101,8 +96,7 @@ function ChangeMessage({ user }: ProfileProps) {
           })
           .eq('profile_id', user.id);
       } else {
-        // Insert new message with profile_id as the primary key
-        console.log('Inserting new message for profile:', user.id, 'with content:', secretMessage);
+        // User has no existing data
         result = await supabase.from('secret_messages').insert({
           profile_id: user.id,
           message: secretMessage,
@@ -111,19 +105,17 @@ function ChangeMessage({ user }: ProfileProps) {
       }
 
       if (result.error) {
-        console.error('Operation error:', result.error);
+        console.error('There is an error:', result.error);
         throw result.error;
       }
 
       console.log('Operation successful:', result);
       setHasExistingMessage(true);
       setSuccess(true);
-      
-      // Close modal on success after a brief delay
+
       setTimeout(() => {
         setSuccess(false);
-        setOpen(false);
-      }, 1500);
+      }, 2000); 
     } catch (err: any) {
       console.error('Error submitting message:', err);
       setError(err.message || 'Failed to save message');
@@ -161,8 +153,8 @@ function ChangeMessage({ user }: ProfileProps) {
             }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault(); // Prevent newline
-                submitData(); // Call your submit function
+                e.preventDefault(); 
+                submitData(); 
               }
             }}
             rows={1}
@@ -182,17 +174,17 @@ function ChangeMessage({ user }: ProfileProps) {
         >
           {submitting ? 'Saving...' : 'Save Message'}
         </button>
-        <div className="mt-5">
-          {error && (
-            <div className="bg-red-100 text-red-700 p-2 rounded">{error}</div>
-          )}
+        {error && (
+          <div className="bg-red-100 text-red-700 p-2 rounded mt-5">
+            {error}
+          </div>
+        )}
 
-          {success && (
-            <div className="bg-green-100 text-green-700 p-2 rounded">
-              Message saved successfully!
-            </div>
-          )}
-        </div>
+        {success && (
+          <div className="bg-green-100 text-green-700 p-2 rounded mt-5">
+            Message saved successfully!
+          </div>
+        )}
       </Modal>
     </>
   );

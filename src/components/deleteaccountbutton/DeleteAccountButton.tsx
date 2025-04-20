@@ -18,7 +18,7 @@ function DeleteAccountButton({ user }: ProfileProps) {
     try {
       setLoading(true);
 
-      // Call the RESTful API endpoint with user ID
+      // delete api route(/api/users/[userId])
       const response = await fetch(`/api/users/${user.id}`, {
         method: 'DELETE',
         headers: {
@@ -26,7 +26,6 @@ function DeleteAccountButton({ user }: ProfileProps) {
         },
       });
 
-      // Check if response is JSON
       const contentType = response.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
         console.error('Non-JSON response received:', await response.text());
@@ -38,7 +37,7 @@ function DeleteAccountButton({ user }: ProfileProps) {
         throw new Error(errorData.message || 'Failed to delete account');
       }
 
-      // Sign out after successful deletion
+      // Sign out account on delete, return to login
       await supabase.auth.signOut();
       window.location.href = '/';
     } catch (error) {
@@ -69,7 +68,7 @@ function DeleteAccountButton({ user }: ProfileProps) {
               loading ? 'opacity-75 cursor-wait' : ''
             }`}
             onClick={handleDeleteAccount}
-            disabled={loading}  // Also disable button when loading
+            disabled={loading} 
           >
             {loading ? 'Deleting Account...' : 'Yes'}
           </button>

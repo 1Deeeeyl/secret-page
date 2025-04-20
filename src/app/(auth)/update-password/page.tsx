@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 
-const UpdatePasswordPage = () => {
+const page = () => {
   const [password, setPassword] = useState('');
   const [retypePassword, setRetypePassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -125,4 +125,4 @@ const UpdatePasswordPage = () => {
   );
 };
 
-export default UpdatePasswordPage;
+export default page;

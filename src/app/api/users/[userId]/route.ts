@@ -2,7 +2,7 @@
 import { createClient, protect } from '@/utils/supabase/server';
 import { NextResponse } from 'next/server';
 
-export async function DELETE(
+async function DELETE(
   request: Request,
   { params }: { params: Promise<{ userId: string }> }
 ) {
@@ -10,27 +10,25 @@ export async function DELETE(
     const user = await protect();
     const { userId } = await params;
 
-    // Security check: Only allow users to delete their own account
     if (user.id !== userId) {
-      return NextResponse.json(
-        { message: 'Unauthorized: You can only delete your own account' },
-        { status: 403 }
-      );
+      throw 'You can only delete your own account';
     }
 
-    const supabase = await createClient();
+    const supabase = await createClient(); //No argument uses anon key
 
-    // 1. First delete user data from profiles table
+    // Delete in friends table
     const { error: friendsDeleteError } = await supabase
       .from('friends')
       .delete()
       .or(`user_id.eq.${userId},friend_id.eq.${userId}`);
 
+    // Delete in secret_messages table
     const { error: secretMessagesDeleteError } = await supabase
       .from('secret_messages')
       .delete()
       .eq('profile_id', userId);
 
+      // Delete in profiles table
     const { error: profileDeleteError } = await supabase
       .from('profiles')
       .delete()
@@ -41,45 +39,27 @@ export async function DELETE(
         'Error deleting profile data:',
         profileDeleteError || secretMessagesDeleteError || friendsDeleteError
       );
-      return NextResponse.json(
-        { message: 'Failed to delete user profile data' },
-        { status: 500 }
-      );
+      throw 'You can only delete your own account';
     }
 
-    // Create admin client with service role for all operations
-    const supabaseAdmin = await createClient(true); // true = use service role
-    // 2. Delete the user authentication data using admin API
+    // Service role key for admin level data manipulation
+    const supabaseAdmin = await createClient(true); // true = use service role key api
+    
+    // Delete the user root data
     const { error: authDeleteError } =
       await supabaseAdmin.auth.admin.deleteUser(userId);
 
     if (authDeleteError) {
-      console.error('Error deleting auth user:', authDeleteError);
-      return NextResponse.json(
-        { message: `Failed to delete account: ${authDeleteError.message}` },
-        { status: 500 }
-      );
+      console.error('Error deleting user:', authDeleteError);
+      return 
     }
 
-    return NextResponse.json(
-      { message: 'Account successfully deleted' },
-      { status: 200 }
-    );
+    return 
   } catch (error) {
-    console.error('Server error during account deletion:', error);
-    return NextResponse.json(
-      {
-        message:
-          error instanceof Error
-            ? error.message
-            : 'Server error during account deletion',
-      },
-      {
-        status:
-          error instanceof Error && error.message === 'Not authorized'
-            ? 401
-            : 500,
-      }
-    );
+    console.error('Error during account deletion:', error);
+    return 
   }
+  
 }
+
+export default DELETE;

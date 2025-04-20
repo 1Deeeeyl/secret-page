@@ -1,4 +1,3 @@
-
 'use client';
 
 import { User } from '@supabase/supabase-js';
@@ -11,7 +10,7 @@ interface HomePageProps {
   user: User;
 }
 
-export default function HomePage({ user }: HomePageProps) {
+function HomePage({ user }: HomePageProps) {
   const supabase = createClient();
   const [username, setUsername] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,3 +56,5 @@ export default function HomePage({ user }: HomePageProps) {
 
   );
 }
+
+export default HomePage

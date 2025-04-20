@@ -39,7 +39,7 @@ function NavBar({ user }: ProfileProps) {
         <DeleteAccountButton user={user} />
       </div>
 
-      {/*Mobile nav */}
+      {/*Mobile top nav */}
       <div className="md:hidden flex justify-between w-full items-center">
         <span className="text-lg font-medium">Secret Website</span>
         <button
@@ -62,7 +62,7 @@ function NavBar({ user }: ProfileProps) {
         </button>
       </div>
 
-      {/* Sliding mobile menu */}
+      {/* Sliding mobile menu nav*/}
       <div
         className={`fixed top-0 right-0 h-full w-fit bg-white shadow-lg z-100 transform transition-transform duration-300 ease-in-out md:hidden ${
           isMenuOpen ? 'translate-x-0' : 'translate-x-full'

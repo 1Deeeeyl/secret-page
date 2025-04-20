@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   description: 'Page 3 of the secret website',
 };
 
-export default async function SecretPage3() {
+async function page() {
   const supabase = await createClient();
 
   const { data } = await supabase.auth.getUser();
@@ -47,3 +47,5 @@ export default async function SecretPage3() {
     </>
   );
 }
+
+export default page

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 
 
-const SignUpPage = () => {
+const page = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [retypePassword, setRetypePassword] = useState('');
@@ -148,4 +148,4 @@ const SignUpPage = () => {
   );
 };
 
-export default SignUpPage;
+export default page;
