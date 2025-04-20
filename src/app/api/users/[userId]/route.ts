@@ -4,11 +4,11 @@ import { NextResponse } from 'next/server';
 // Use the correct parameter structure for Next.js App Router
 export async function DELETE(
   request: Request,
-  context: { params: { userId: string } }
+  {params}: { params:Promise< { userId: string }> }
 ) {
   try {
     const user = await protect();
-    const userId = context.params.userId;
+    const {userId} = await params
 
     if (user.id !== userId) {
       return NextResponse.json(
