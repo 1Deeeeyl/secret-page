@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 
 const UpdatePasswordPage = () => {
   const [password, setPassword] = useState('');
@@ -14,12 +13,10 @@ const UpdatePasswordPage = () => {
   const supabase = createClient();
   const router = useRouter();
 
-  // Check if we have a valid session when the page loads
   useEffect(() => {
     const url = window.location.href;
     supabase.auth.exchangeCodeForSession(url);
     const handlePasswordReset = async () => {
-      // Get the error from URL if any
       const url = new URL(window.location.href);
       const errorCode = url.searchParams.get('error_code');
 
@@ -30,8 +27,6 @@ const UpdatePasswordPage = () => {
         return;
       }
 
-      // If there's no error, the page should be loaded through the Supabase auth flow
-      // which will already have processed the token
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -59,7 +54,7 @@ const UpdatePasswordPage = () => {
       }
 
       const { data, error } = await supabase.auth.updateUser({
-        password: password, // Use the actual password from the form
+        password: password,
       });
 
       if (error) {
@@ -67,8 +62,8 @@ const UpdatePasswordPage = () => {
       }
 
       setSuccess(true);
-      // Redirect to home page or dashboard after successful update
-      setTimeout(() => router.push('/'), 2000);
+      // To redirect to /
+      setTimeout(() => router.push('/'), 3000);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -122,7 +117,7 @@ const UpdatePasswordPage = () => {
 
         {success && (
           <div className="bg-green-100 text-green-700 p-2 rounded">
-            Password updated successfully!
+            Password updated successfully! Logging in...
           </div>
         )}
       </div>

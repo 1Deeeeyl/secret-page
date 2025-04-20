@@ -27,7 +27,7 @@ function NavBar({ user }: ProfileProps) {
               <Link
                 key={href}
                 href={href}
-                className="border-b-2 border-transparent hover:border-gray-600"
+                className="hover:underline underline-offset-2"
                 onClick={() => setIsMenuOpen(false)}
               >
                 {label}

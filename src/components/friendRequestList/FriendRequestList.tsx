@@ -112,7 +112,6 @@ function FriendRequestList({ user }: HomePageProps) {
   useEffect(() => {
     fetchFriendRequests();
 
-    console.log('Setting up realtime subscription for user:', user.id);
 
     const channel = supabase
       .channel('friend-requests')
@@ -125,7 +124,6 @@ function FriendRequestList({ user }: HomePageProps) {
           filter: `friend_id=eq.${user.id}`,
         },
         async (payload) => {
-          console.log('Realtime event in friends table:', payload);
 
           if (payload.eventType === 'INSERT' && payload.new.status === 'pending') {
             const { data: profileData } = await supabase
@@ -154,7 +152,7 @@ function FriendRequestList({ user }: HomePageProps) {
         }
       )
       .subscribe((status) => {
-        console.log('Realtime subscription status:', status); // Should say "SUBSCRIBED"
+        console.log('Realtime subscription status:', status); 
       });
 
     return () => {
@@ -185,7 +183,7 @@ function FriendRequestList({ user }: HomePageProps) {
             <span className="flex gap-2">
               <button
                 onClick={() => handleAccept(request.id)}
-                className="bg-cyan-500 text-white px-3 py-2 rounded hover:bg-cyan-600 transition"
+                className="bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600 transition"
               >
                 Accept
               </button>

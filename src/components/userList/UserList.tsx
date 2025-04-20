@@ -79,42 +79,37 @@ function UserList({ user }: HomePageProps) {
 
   const revealSecretMessage = async () => {
     if (!selectedUser) return;
-
+  
     setMessageLoading(true);
-
+  
     try {
-      // First check if users are friends
-      const { data: friendship, error: friendshipError } = await supabase
-        .from('friends')
-        .select('status')
-        .or(
-          `and(user_id.eq.${user.id},friend_id.eq.${selectedUser.profileId}),and(user_id.eq.${selectedUser.profileId},friend_id.eq.${user.id})`
-        );
-
-      if (friendshipError) throw friendshipError;
-
-      // Check if any record has status 'accepted'
-      const areFriends =
-        friendship && friendship.some((f) => f.status === 'accepted');
-
-      // Only fetch message if they're friends
-      if (areFriends) {
-        const { data, error } = await supabase
-          .from('secret_messages')
-          .select('message')
-          .eq('profile_id', selectedUser.profileId)
-          .single();
-
-        if (error) {
-          throw error;
+      const { data, error } = await supabase
+        .from('secret_messages')
+        .select('message')
+        .eq('profile_id', selectedUser.profileId)
+        .single();
+  
+      if (error) {
+        // RLS permission denied error - different possible error codes
+        if (
+          error.code === '42501' || // PostgreSQL insufficient privilege error
+          error.code === 'PGRST301' || // PostgREST error
+          error.message.includes('406') || // Not Acceptable
+          error.message.includes('permission denied') ||
+          error.message.includes('insufficient privilege')
+        ) {
+          setSecretMessage('🔒 You must be friends with this user to see their secret message.');
+          return;
         }
-
-        setSecretMessage(data ? data.message : 'User has no secret message.');
-      } else {
-        setSecretMessage(
-          '🔒 You must be friends with this user to see their secret message.'
-        );
+        // No record found
+        if (error.code === 'PGRST116') {
+          setSecretMessage('User has no secret message.');
+          return;
+        }
+        throw error;
       }
+  
+      setSecretMessage(data ? data.message : 'User has no secret message.');
     } catch (err) {
       console.error('Error fetching secret message:', err);
       setSecretMessage('Error loading secret message');
@@ -332,7 +327,7 @@ function UserList({ user }: HomePageProps) {
           <button
             onClick={sendFriendRequest}
             disabled={requestLoading}
-            className="mt-4 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-2 px-4 rounded transition-colors"
+            className="mt-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition-colors"
           >
             {requestLoading ? 'Sending...' : 'Add Friend'}
           </button>
@@ -359,7 +354,7 @@ function UserList({ user }: HomePageProps) {
               <h3 className="font-semibold">{username}</h3>
               <span
                 onClick={() => handleUserClick(profileId, username)}
-                className="font-light underline underline-offset-2 decoration-cyan-500 text-cyan-500 text-sm cursor-pointer"
+                className="font-light underline underline-offset-2 decoration-blue-500 text-blue-500 text-sm cursor-pointer"
               >
                 View details
               </span>
@@ -371,14 +366,10 @@ function UserList({ user }: HomePageProps) {
       )}
       <Modal open={open} onClose={handleCloseModal}>
         {selectedUser && (
-          <div className="p-4">
-            <h3 className="text-xl font-bold mb-4">{selectedUser.username}</h3>
-
-            {/* Friendship UI */}
-            {renderFriendshipUI()}
-
+          <>
+            <h3 className="text-xl font-bold">{selectedUser.username}</h3>
             {/* Secret message section */}
-            <div className="mt-4">
+            <div className="mt-2">
               <h4 className="font-medium">Secret Message</h4>
               {secretMessage ? (
                 <div className="bg-gray-100 p-3 rounded mt-2">
@@ -386,14 +377,17 @@ function UserList({ user }: HomePageProps) {
                 </div>
               ) : (
                 <p
-                  className="font-light underline underline-offset-2 decoration-cyan-500 text-cyan-500 text-sm cursor-pointer mt-2"
+                  className="font-light underline underline-offset-2 decoration-blue-500 text-blue-500 text-sm cursor-pointer mt-2"
                   onClick={revealSecretMessage}
                 >
                   {messageLoading ? 'Loading...' : 'REVEAL SECRET MESSAGE'}
                 </p>
               )}
             </div>
-          </div>
+
+            {/* Friendship UI */}
+            {renderFriendshipUI()}
+          </>
         )}
       </Modal>
     </div>
@@ -401,3 +395,5 @@ function UserList({ user }: HomePageProps) {
 }
 
 export default UserList;
+
+
