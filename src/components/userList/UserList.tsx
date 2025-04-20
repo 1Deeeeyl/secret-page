@@ -285,9 +285,7 @@ function UserList({ user }: HomePageProps) {
           }
         }
       )
-      .subscribe((status) => {
-        console.log('Profile subscription status:', status);
-      });
+      .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
