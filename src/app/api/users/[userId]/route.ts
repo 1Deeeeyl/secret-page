@@ -1,7 +1,7 @@
 import { createClient, protect } from '@/utils/supabase/server';
 // import { NextResponse } from 'next/server';
 
-async function DELETE(
+async function handleDelete(
   request: Request,
   { params }: { params: Promise<{ userId: string }> }
 ) {
@@ -61,4 +61,4 @@ async function DELETE(
   
 }
 
-export default DELETE;
+export {handleDelete}
