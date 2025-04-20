@@ -1,14 +1,13 @@
 import { createClient, protect } from '@/utils/supabase/server';
 import { NextResponse } from 'next/server';
 
-// Use DELETE as the export name (all caps to match HTTP method)
 export async function DELETE(
   request: Request,
   { params }: { params: { userId: string } }
 ) {
   try {
     const user = await protect();
-    const { userId } = params;
+    const userId = params.userId;
 
     if (user.id !== userId) {
       return NextResponse.json(
