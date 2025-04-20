@@ -9,9 +9,8 @@ interface HomePageProps {
   user: User;
 }
 
-// Define a type for the username object
 type UsernameObject = {
-  [profileId: string]: string; // key = profile_id, value = username
+  [profileId: string]: string;
 };
 
 function UserList({ user }: HomePageProps) {
@@ -30,17 +29,15 @@ function UserList({ user }: HomePageProps) {
 
   const handleUserClick = (profileId: string, username: string) => {
     setSelectedUser({ profileId, username });
-    setSecretMessage(null); // Reset message when selecting a new user
-    setFriendshipStatus(null); // Reset friendship status
+    setSecretMessage(null); 
+    setFriendshipStatus(null);
     setOpen(true);
 
-    // Check friendship status when modal opens
     checkFriendshipStatus(profileId);
   };
 
   const checkFriendshipStatus = async (profileId: string) => {
     try {
-      // Check for friendship in either direction
       const { data, error } = await supabase
         .from('friends')
         .select('*')
@@ -53,13 +50,11 @@ function UserList({ user }: HomePageProps) {
         return;
       }
 
-      // No relationship found
       if (!data || data.length === 0) {
         setFriendshipStatus('not_friends');
         return;
       }
 
-      // Find the most relevant status (accepted takes precedence)
       if (data.some((friendship) => friendship.status === 'accepted')) {
         setFriendshipStatus('accepted');
       } else if (data.some((friendship) => friendship.status === 'pending')) {
@@ -74,7 +69,7 @@ function UserList({ user }: HomePageProps) {
 
   const handleCloseModal = () => {
     setOpen(false);
-    setSecretMessage(null); // Reset message when modal closes
+    setSecretMessage(null); 
   };
 
   const revealSecretMessage = async () => {
@@ -83,6 +78,21 @@ function UserList({ user }: HomePageProps) {
     setMessageLoading(true);
   
     try {
+      const { data: friendship, error: friendshipError } = await supabase
+        .from('friends')
+        .select('status')
+        .or(
+          `and(user_id.eq.${user.id},friend_id.eq.${selectedUser.profileId},status.eq.accepted),and(friend_id.eq.${user.id},user_id.eq.${selectedUser.profileId},status.eq.accepted)`
+        )
+        .single();
+  
+      const areFriends = !!friendship && friendship.status === 'accepted';
+  
+      if (!areFriends) {
+        setSecretMessage('🔒 You must be friends with this user to see their secret message.');
+        return;
+      }
+  
       const { data, error } = await supabase
         .from('secret_messages')
         .select('message')
@@ -90,18 +100,6 @@ function UserList({ user }: HomePageProps) {
         .single();
   
       if (error) {
-        // RLS permission denied error - different possible error codes
-        if (
-          error.code === '42501' || // PostgreSQL insufficient privilege error
-          error.code === 'PGRST301' || // PostgREST error
-          error.message.includes('406') || // Not Acceptable
-          error.message.includes('permission denied') ||
-          error.message.includes('insufficient privilege')
-        ) {
-          setSecretMessage('🔒 You must be friends with this user to see their secret message.');
-          return;
-        }
-        // No record found
         if (error.code === 'PGRST116') {
           setSecretMessage('User has no secret message.');
           return;
@@ -109,7 +107,12 @@ function UserList({ user }: HomePageProps) {
         throw error;
       }
   
-      setSecretMessage(data ? data.message : 'User has no secret message.');
+
+      if (!data?.message || data.message.trim() === '') {
+        setSecretMessage('User has no secret message.');
+      } else {
+        setSecretMessage(data.message);
+      }
     } catch (err) {
       console.error('Error fetching secret message:', err);
       setSecretMessage('Error loading secret message');
@@ -124,7 +127,6 @@ function UserList({ user }: HomePageProps) {
     setRequestLoading(true);
 
     try {
-      // First, check for an existing record where current user is the sender
       const { data: existingSentRequest, error: checkSentError } =
         await supabase
           .from('friends')
@@ -138,7 +140,6 @@ function UserList({ user }: HomePageProps) {
         return;
       }
 
-      // Then, check for an existing record where current user is the recipient
       const { data: existingReceivedRequest, error: checkReceivedError } =
         await supabase
           .from('friends')
@@ -155,7 +156,6 @@ function UserList({ user }: HomePageProps) {
         return;
       }
 
-      // Case 1: Current user already sent a request (update it if rejected)
       if (existingSentRequest) {
         if (existingSentRequest.status === 'rejected') {
           const { error: updateError } = await supabase
@@ -168,11 +168,8 @@ function UserList({ user }: HomePageProps) {
             return;
           }
         }
-        // If status is already pending or accepted, do nothing
       }
-      // Case 2: Current user received a request previously (create a new record in the opposite direction)
       else if (existingReceivedRequest) {
-        // Delete the old record first if it's rejected
         if (existingReceivedRequest.status === 'rejected') {
           const { error: deleteError } = await supabase
             .from('friends')
@@ -184,7 +181,6 @@ function UserList({ user }: HomePageProps) {
             return;
           }
 
-          // Now insert a new record in the opposite direction
           const { error: insertError } = await supabase.from('friends').insert({
             user_id: user.id,
             friend_id: selectedUser.profileId,
@@ -196,9 +192,7 @@ function UserList({ user }: HomePageProps) {
             return;
           }
         }
-        // If the received request is pending or accepted, we shouldn't create a new one
       }
-      // Case 3: No existing relationship, create a new request
       else {
         const { error: insertError } = await supabase.from('friends').insert({
           user_id: user.id,
@@ -230,7 +224,6 @@ function UserList({ user }: HomePageProps) {
 
         if (error) throw error;
 
-        // Convert array of users into an object
         const usernames: UsernameObject = {};
         data?.forEach((user) => {
           usernames[user.profile_id] = user.username;
@@ -246,13 +239,13 @@ function UserList({ user }: HomePageProps) {
 
     fetchUsers();
 
-    // Set up real-time subscription for the profiles table
+    // supabase realtime docs
     const channel = supabase
       .channel('profiles-changes')
       .on(
         'postgres_changes',
         {
-          event: '*', // Listen for all events (INSERT, UPDATE, DELETE)
+          event: '*', 
           schema: 'public',
           table: 'profiles',
         },
@@ -263,7 +256,6 @@ function UserList({ user }: HomePageProps) {
             payload.eventType === 'INSERT' &&
             payload.new.profile_id !== user.id
           ) {
-            // Add new user to the list
             setUserList((prev) => ({
               ...prev,
               [payload.new.profile_id]: payload.new.username,
@@ -274,7 +266,6 @@ function UserList({ user }: HomePageProps) {
             payload.eventType === 'UPDATE' &&
             payload.new.profile_id !== user.id
           ) {
-            // Update existing user in the list
             setUserList((prev) => ({
               ...prev,
               [payload.new.profile_id]: payload.new.username,
@@ -285,7 +276,6 @@ function UserList({ user }: HomePageProps) {
             payload.eventType === 'DELETE' &&
             payload.old.profile_id !== user.id
           ) {
-            // Remove user from the list
             setUserList((prev) => {
               const updated = { ...prev };
               delete updated[payload.old.profile_id];
@@ -298,14 +288,12 @@ function UserList({ user }: HomePageProps) {
         console.log('Profile subscription status:', status);
       });
 
-    // Cleanup function to remove the channel when component unmounts
     return () => {
       supabase.removeChannel(channel);
     };
   }, [user.id]);
 
-  // Render friendship status based UI
-  const renderFriendshipUI = () => {
+  const renderFriendUi = () => {
     if (!selectedUser) return null;
 
     switch (friendshipStatus) {
@@ -386,7 +374,7 @@ function UserList({ user }: HomePageProps) {
             </div>
 
             {/* Friendship UI */}
-            {renderFriendshipUI()}
+            {renderFriendUi()}
           </>
         )}
       </Modal>
