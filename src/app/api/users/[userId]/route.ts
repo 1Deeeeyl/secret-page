@@ -1,13 +1,14 @@
 import { createClient, protect } from '@/utils/supabase/server';
 import { NextResponse } from 'next/server';
 
+// Use the correct parameter structure for Next.js App Router
 export async function DELETE(
   request: Request,
-  { params }: { params: { userId: string } }
+  context: { params: { userId: string } }
 ) {
   try {
     const user = await protect();
-    const userId = params.userId;
+    const userId = context.params.userId;
 
     if (user.id !== userId) {
       return NextResponse.json(
