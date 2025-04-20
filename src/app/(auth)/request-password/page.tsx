@@ -17,14 +17,16 @@ const Page = () => {
     setSuccess(false);
 
     try {
-      const { data, error: resetError } =
-        await supabase.auth.resetPasswordForEmail(email, {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+        email,
+        {
           redirectTo: 'http://localhost:3000/update-password',
-        });
+        }
+      );
       if (resetError) {
         throw new Error(resetError.message);
       }
-      setSuccess(true)
+      setSuccess(true);
     } catch (err: any) {
       setError(err.message);
     } finally {

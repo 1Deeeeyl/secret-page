@@ -1,5 +1,4 @@
 import { redirect } from 'next/navigation';
-import NavBar from '@/components/navbar/NavBar';
 import { createClient } from '@/utils/supabase/server';
 import SecretMessage from '@/components/secret-message/SecretMessage';
 import UserSecretMessage from '@/components/UserSecretMessage/UserSecretMessage';

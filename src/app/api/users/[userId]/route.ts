@@ -1,6 +1,5 @@
-// app/api/users/[userId]/route.ts
 import { createClient, protect } from '@/utils/supabase/server';
-import { NextResponse } from 'next/server';
+// import { NextResponse } from 'next/server';
 
 async function DELETE(
   request: Request,

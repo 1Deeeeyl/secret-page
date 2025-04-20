@@ -4,11 +4,9 @@ import { User } from '@supabase/supabase-js';
 import { useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 
-interface ProfileProps {
-  user: User;
-}
 
-function SignOutButton({ user }: ProfileProps) {
+
+function SignOutButton() {
   const supabase = createClient();
   const [loading, setLoading] = useState(false);
   const handleLogout = async () => {
