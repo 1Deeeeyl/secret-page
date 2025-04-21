@@ -20,7 +20,7 @@ const Page = () => {
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(
         email,
         {
-          redirectTo: 'http://localhost:3000/update-password',
+          redirectTo: 'https://secret-page-delta.vercel.app/update-password',
         }
       );
       if (resetError) {
