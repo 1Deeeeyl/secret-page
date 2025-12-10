@@ -4,7 +4,7 @@
 
 <div align="center" >
 <div>
-    <img src="https://raw.githubusercontent.com/1Deeeeyl/v1Portfolio/main/src/assets/images/projects/LOGIN" alt="Secret Page App Preview" width="1080" style="margin-top: 15px">
+    <img src="https://raw.githubusercontent.com/1Deeeeyl/v1Portfolio/main/src/assets/images/projects/login.png" alt="Secret Page App Preview" width="1080" style="margin-top: 15px">
 </div>
 
 
